@@ -56,7 +56,7 @@ LIBRARIES = $(addprefix $(CPP_BUILD_DIR)/, libPersistent.so)
 EXAMPLES_DIR = src/examples
 ALL_EXAMPLE_DIRS = $(wildcard $(EXAMPLES_DIR)/*)
 
-all: sources examples testsources
+all: sources examples testsources mvn
 sources: cpp java
 cpp: $(LIBRARIES)
 java: classes
@@ -110,3 +110,6 @@ $(CLASSES_DIR):
 
 $(TEST_CLASSES_DIR):
 	mkdir -p $(TEST_CLASSES_DIR)
+
+mvn:
+	tools/mvn/install.sh
