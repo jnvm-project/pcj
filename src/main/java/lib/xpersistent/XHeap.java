@@ -32,12 +32,40 @@ import lib.util.persistent.ObjectDirectory;
 import lib.util.persistent.Util;
 
 import java.util.Properties;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import sun.misc.Unsafe;
 
 public class XHeap implements PersistentHeap {
+
+    private static void loadNativeLibraryFromJar(String lib) {
+        String libPathName = System.mapLibraryName(lib);
+        InputStream ipStream = XHeap.class.getClassLoader().getResourceAsStream(libPathName);
+        try {
+            File tmpFile = File.createTempFile("lib", "so");
+            tmpFile.deleteOnExit();
+
+            byte[] buff = new byte[1024];
+            int streamLength;
+            OutputStream opStream = new FileOutputStream(tmpFile);
+            while ((streamLength = ipStream.read(buff)) != -1) {
+                opStream.write(buff, 0, streamLength);
+            }
+            opStream.close();
+            ipStream.close();
+            System.load(tmpFile.getAbsolutePath());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
     static {
-        System.loadLibrary("Persistent");
+        loadNativeLibraryFromJar("Persistent");
         try {
             java.lang.reflect.Field f = Unsafe.class.getDeclaredField("theUnsafe");
             f.setAccessible(true);

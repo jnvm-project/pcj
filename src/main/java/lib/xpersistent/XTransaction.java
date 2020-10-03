@@ -26,10 +26,39 @@ import lib.util.persistent.TransactionException;
 import lib.util.persistent.PersistenceException;
 import lib.util.persistent.spi.PersistentMemoryProvider;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
 public class XTransaction implements TransactionCore {
 
+    private static void loadNativeLibraryFromJar(String lib) {
+        String libPathName = System.mapLibraryName(lib);
+        InputStream ipStream = XTransaction.class.getClassLoader().getResourceAsStream(libPathName);
+        try {
+            File tmpFile = File.createTempFile("lib", "so");
+            tmpFile.deleteOnExit();
+
+            byte[] buff = new byte[1024];
+            int streamLength;
+            OutputStream opStream = new FileOutputStream(tmpFile);
+            while ((streamLength = ipStream.read(buff)) != -1) {
+                opStream.write(buff, 0, streamLength);
+            }
+            opStream.close();
+            ipStream.close();
+            System.load(tmpFile.getAbsolutePath());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
     static {
-        System.loadLibrary("Persistent");
+        loadNativeLibraryFromJar("Persistent");
         lib.util.persistent.spi.PersistentMemoryProvider.getDefaultProvider().getHeap().open();
     }
 

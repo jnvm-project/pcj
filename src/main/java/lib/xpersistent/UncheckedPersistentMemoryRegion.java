@@ -21,14 +21,43 @@
 
 package lib.xpersistent;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
 import lib.util.persistent.MemoryRegion;
 
 public class UncheckedPersistentMemoryRegion implements MemoryRegion {
     private long addr;
     long directAddress;
 
+    private static void loadNativeLibraryFromJar(String lib) {
+        String libPathName = System.mapLibraryName(lib);
+        InputStream ipStream = UncheckedPersistentMemoryRegion.class.getClassLoader().getResourceAsStream(libPathName);
+        try {
+            File tmpFile = File.createTempFile("lib", "so");
+            tmpFile.deleteOnExit();
+
+            byte[] buff = new byte[1024];
+            int streamLength;
+            OutputStream opStream = new FileOutputStream(tmpFile);
+            while ((streamLength = ipStream.read(buff)) != -1) {
+                opStream.write(buff, 0, streamLength);
+            }
+            opStream.close();
+            ipStream.close();
+            System.load(tmpFile.getAbsolutePath());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
     static {
-        System.loadLibrary("Persistent");
+        loadNativeLibraryFromJar("Persistent");
     }
 
     // TODO: should not be public
