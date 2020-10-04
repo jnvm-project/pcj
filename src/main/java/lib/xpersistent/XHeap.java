@@ -94,14 +94,14 @@ public class XHeap implements PersistentHeap {
         long size;
 
         try {
-            FileInputStream propInput = new FileInputStream("config.properties");
+            InputStream propInput = XHeap.class.getClassLoader().getResourceAsStream("pcj.properties");
             Properties prop = new Properties();
             prop.load(propInput);
 
-            path = prop.getProperty("path");
-            size = Long.parseLong(prop.getProperty("size"));
+            path = prop.getProperty("pcj.heap.path");
+            size = Long.parseLong(prop.getProperty("pcj.heap.size"));
         } catch (Exception e) {
-            System.out.println("Could not properly load config.properties file; using default values for pool path (/mnt/mem/persistent_heap) and size (2GB).");
+            System.out.println("Could not properly load pcj.properties file; using default values for pool path (/mnt/mem/persistent_heap) and size (2GB).");
             path = "/mnt/mem/persistent_heap";
             size = 2L*1024L*1024L*1024L;
         }
